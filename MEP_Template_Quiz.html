@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Revit: MEP Template — Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1F33;
+    --card:#132A44;
+    --card2:#0F2438;
+    --gold:#C6A15B;
+    --gold-dim:rgba(198,161,91,.35);
+    --navy1:#355374;
+    --navy2:#3B5F82;
+    --text:#EAF0F6;
+    --muted:#8FA3B8;
+    --ok:#4ade80;
+    --bad:#f87171;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(198,161,91,.06), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(59,95,130,.15), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Sarabun',sans-serif;
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:720px;margin:0 auto;}
+  h1,.heading{font-family:'Chakra Petch',sans-serif;color:var(--gold);margin:0;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--gold-dim);
+    border-radius:20px;
+    overflow:hidden;
+  }
+  .accent-bar{height:5px;background:linear-gradient(90deg,var(--gold),#8a6a3a,var(--gold));}
+  .card-inner{padding:28px 24px;}
+  .top-title{font-family:'Chakra Petch',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px;}
+  .top-sub{
+    color:var(--muted);font-size:15px;font-weight:300;margin-bottom:26px;
+    padding-bottom:18px;border-bottom:1px dashed var(--gold-dim);
+  }
+  .field-label{
+    font-size:16px;font-weight:300;color:#cbd8e6;margin:0 0 6px 4px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .field-label svg{width:14px;height:14px;stroke:var(--gold);flex-shrink:0;}
+  .field-input{
+    width:100%;padding:14px 16px;border-radius:12px;
+    border:1px solid var(--gold-dim);background:var(--card2);
+    color:var(--text);font-family:'Sarabun',sans-serif;font-size:17px;font-weight:300;
+    margin-bottom:18px;
+  }
+  .field-input::placeholder{color:#5b7086;font-weight:300;}
+  .field-input:disabled{opacity:.6;}
+  .round-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+  .round-opt{
+    position:relative;padding:18px 10px 16px;border-radius:14px;text-align:center;cursor:pointer;
+    border:1.5px solid var(--gold-dim);background:var(--card2);
+    font-size:16px;font-weight:400;transition:.15s;
+  }
+  .round-opt .r-icon{width:24px;height:24px;margin:0 auto 8px;display:block;stroke:var(--muted);}
+  .round-opt.active{border-color:var(--gold);}
+  .round-opt.active .r-icon{stroke:var(--gold);}
+  .round-opt.active::after{
+    content:"✓";position:absolute;top:8px;right:10px;width:18px;height:18px;
+    background:var(--gold);color:#0B1F33;border-radius:50%;font-size:11px;
+    display:flex;align-items:center;justify-content:center;font-weight:700;
+  }
+  .round-opt.disabled{opacity:.35;cursor:not-allowed;}
+  .start-btn{
+    width:100%;padding:16px;border:none;border-radius:12px;
+    background:var(--gold);color:#0B1F33;font-family:'Chakra Petch',sans-serif;
+    font-size:16px;font-weight:700;cursor:pointer;transition:.15s;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .start-btn:disabled{opacity:.35;cursor:not-allowed;background:var(--navy2);color:#fff;}
+  .locked-box{
+    text-align:center;padding:30px 10px;
+  }
+  .locked-box .l-icon{font-size:40px;margin-bottom:12px;}
+  .locked-box .l-title{font-size:20px;font-weight:600;color:var(--gold);margin-bottom:8px;font-family:'Chakra Petch',sans-serif;}
+  .locked-box .l-sub{color:var(--muted);font-size:15px;font-weight:300;}
+
+  /* S1 quiz screen */
+  .quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .q-badge{font-size:15px;font-weight:600;color:var(--gold);}
+  .timer-box{
+    display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;
+    background:var(--card2);border:1px solid var(--gold-dim);font-family:'Sora',sans-serif;
+    font-size:16px;font-weight:600;
+  }
+  .timer-box.warn{border-color:var(--bad);color:var(--bad);}
+  .progress-bar{height:6px;border-radius:6px;background:var(--card2);margin-bottom:22px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--gold);transition:width .3s;}
+  .q-text{font-size:20px;font-weight:500;margin:0 0 20px;line-height:1.5;}
+  .choice{
+    display:block;width:100%;text-align:left;padding:16px 18px;margin-bottom:12px;
+    border-radius:12px;border:1px solid var(--gold-dim);background:var(--card2);
+    color:var(--text);font-family:'Sarabun',sans-serif;font-size:17px;font-weight:400;
+    cursor:pointer;transition:.15s;
+  }
+  .choice .ch-idx{color:var(--gold);font-weight:600;margin-right:8px;}
+  .choice.selected{border-color:var(--gold);background:var(--navy1);}
+  .choice:disabled{cursor:not-allowed;}
+  .next-btn{
+    width:100%;padding:15px;border:none;border-radius:12px;margin-top:6px;
+    background:var(--gold);color:#0B1F33;font-family:'Chakra Petch',sans-serif;
+    font-size:16px;font-weight:700;cursor:pointer;
+  }
+  .next-btn:disabled{opacity:.3;cursor:not-allowed;background:var(--navy2);color:#fff;}
+
+  /* S2 results */
+  .result-wrap{text-align:center;padding:10px;}
+  .ring{
+    width:150px;height:150px;border-radius:50%;margin:0 auto 18px;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .ring-val{font-family:'Sora',sans-serif;font-size:32px;font-weight:700;}
+  .ring-sub{font-family:'Sarabun',sans-serif;font-size:13px;font-weight:300;color:var(--muted);}
+  .r-name{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px;}
+  .r-pill{
+    display:inline-block;padding:8px 24px;border-radius:999px;font-size:16px;font-weight:700;
+    margin:6px 0 22px;font-family:'Sarabun',sans-serif;
+  }
+  .r-pill.pass{background:rgba(74,222,128,.15);color:var(--ok);border:1px solid var(--ok);}
+  .r-pill.fail{background:rgba(248,113,113,.15);color:var(--bad);border:1px solid var(--bad);}
+  .compare-box{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 24px;
+  }
+  .compare-item{background:var(--card2);border-radius:14px;padding:16px;}
+  .compare-label{font-size:14px;font-weight:300;color:var(--muted);margin-bottom:6px;}
+  .compare-score{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;color:var(--gold);}
+  .continue-btn{
+    width:100%;padding:15px;border:none;border-radius:12px;margin-top:4px;
+    background:var(--gold);color:#0B1F33;font-family:'Chakra Petch',sans-serif;
+    font-size:16px;font-weight:700;cursor:pointer;
+  }
+  .save-status{
+    display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;
+    border:1px solid var(--gold-dim);background:var(--card2);margin-top:18px;
+  }
+  .glow-dot{width:12px;height:12px;border-radius:50%;background:var(--gold);
+    box-shadow:0 0 8px 2px var(--gold);animation:pulse 1s infinite;flex-shrink:0;}
+  .glow-dot.done{background:var(--ok);box-shadow:0 0 8px 2px var(--ok);animation:none;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+  .save-text{font-size:14px;font-weight:700;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- S0: round selector / entry -->
+  <div class="screen active" id="s0">
+    <div class="card" id="s0-form">
+      <div class="accent-bar"></div>
+      <div class="card-inner">
+      <div class="top-title">Revit: MEP Template</div>
+      <div class="top-sub">แบบทดสอบก่อน–หลังอบรม 30 ข้อ</div>
+
+      <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 20c0-4 4-6 8-6s8 2 8 6"/></svg>ชื่อ-นามสกุล</div>
+      <input class="field-input" id="in-name" placeholder="กรอกชื่อ-นามสกุล">
+
+      <div class="field-label"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 21V7l8-4 8 4v14M9 21v-6h6v6"/></svg>หน่วยงาน / บริษัท</div>
+      <input class="field-input" id="in-org" placeholder="กรอกชื่อหน่วยงาน">
+
+      <div class="field-label">เลือกรอบทดสอบ</div>
+      <div class="round-grid">
+        <div class="round-opt" id="opt-pre" onclick="selectRound('pre')">
+          <svg class="r-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
+          ก่อนอบรม<br><span style="font-size:12px;color:var(--muted)">10 นาที</span>
+        </div>
+        <div class="round-opt disabled" id="opt-post" onclick="selectRound('post')">
+          <svg class="r-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
+          หลังอบรม<br><span style="font-size:12px;color:var(--muted)">15 นาที</span>
+        </div>
+      </div>
+
+      <button class="start-btn" id="btn-start" onclick="go()" disabled>เริ่มทำแบบทดสอบ →</button>
+      </div>
+    </div>
+
+    <div class="card locked-box" id="s0-locked" style="display:none;">
+      <div class="l-icon">🔒</div>
+      <div class="l-title">ทำแบบทดสอบครบทั้ง 2 รอบแล้ว</div>
+      <div class="l-sub">ขอบคุณที่เข้าร่วมทำแบบทดสอบก่อน-หลังอบรม</div>
+    </div>
+  </div>
+
+  <!-- S1: quiz -->
+  <div class="screen" id="s1">
+    <div class="card">
+      <div class="accent-bar"></div>
+      <div class="card-inner">
+      <div class="quiz-head">
+        <div class="q-badge" id="q-badge">ข้อที่ 1 จาก 30</div>
+        <div class="timer-box" id="timer-box">⏱ <span id="timer-val">10:00</span></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="q-text" id="q-text"></div>
+      <div id="choices-wrap"></div>
+      <button class="next-btn" id="btn-next" onclick="nextQuestion()" disabled>ข้อถัดไป →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2: results -->
+  <div class="screen" id="s2">
+    <div class="card result-wrap">
+      <div class="accent-bar"></div>
+      <div class="card-inner">
+      <div class="ring" id="ring">
+        <div>
+          <div class="ring-val" id="ring-val">0%</div>
+          <div class="ring-sub" id="ring-sub">0/30</div>
+        </div>
+      </div>
+      <div class="r-name" id="r-name"></div>
+      <div class="r-pill" id="r-pill"></div>
+
+      <div class="compare-box" id="compare-box" style="display:none;">
+        <div class="compare-item">
+          <div class="compare-label">ก่อนอบรม</div>
+          <div class="compare-score" id="cmp-pre">-</div>
+        </div>
+        <div class="compare-item">
+          <div class="compare-label">หลังอบรม</div>
+          <div class="compare-score" id="cmp-post">-</div>
+        </div>
+      </div>
+
+      <button class="continue-btn" id="btn-continue" style="display:none;" onclick="goToPost()">ทำรอบหลังอบรมต่อเลย →</button>
+
+      <div class="save-status" id="save-status">
+        <div class="glow-dot" id="save-dot"></div>
+        <div class="save-text" id="save-text">กำลังบันทึกข้อมูล... กรุณารอสักครู่ก่อนปิดหน้าจอ</div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+const COURSE_NAME = "Revit: MEP Template";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRB_ZAu7lixziNIwWYXabTXfLCvmOoizsWcg1AldjL7jMPbl6dPE7IT594gg-ISRHcSA/exec";
+const LS = "rtq_"; // localStorage prefix — Revit MEP Template Quiz
+const PASS_PERCENT = 70;
+const TIME_PRE = 10 * 60;
+const TIME_POST = 15 * 60;
+
+/* ============ QUESTION BANK (30) ============ */
+const QUESTIONS = [
+{q:"Revit MEP Template (.rte) คือไฟล์ประเภทใด",choices:["ไฟล์โมเดลโครงการ","ไฟล์ตั้งต้นมาตรฐานงานระบบ","ไฟล์ต้นแบบสำหรับสร้าง Family","ไฟล์คอมโพเนนต์ที่โหลดใช้งานได้"],ans:1},
+{q:"ไฟล์นามสกุลใดคือ Family Template ที่ใช้สร้าง Family และแก้ไขโดย BIM Manager",choices:[".rvt",".rte",".rfa",".rft"],ans:3},
+{q:'ข้อใดต่อไปนี้ "ไม่" ถูกจัดเก็บไว้ใน Template (.rte)',choices:["System Family Types และ Type Parameter","Project Settings และ MEP Settings","Geometry ของโมเดลที่วางไว้แล้ว เช่น ผนัง ท่อ อุปกรณ์","View Templates, Filters และ Scope Boxes"],ans:2},
+{q:"หน่วยแนะนำสำหรับ Air Flow ในงาน HVAC คือข้อใด",choices:["L/s","mm","kW","Pa"],ans:0},
+{q:"จุดใดคือจุดศูนย์กลาง (0,0,0) ถาวรของไฟล์ที่ไม่สามารถย้ายได้",choices:["Survey Point","Project Base Point","Internal Origin","Grid Origin"],ans:2},
+{q:"ใน Shared Coordinates Workflow ผู้ใดเป็นผู้กำหนดและถือพิกัดหลัก (Coordinate Owner)",choices:["วิศวกรงานระบบ","สถาปนิก","BIM Coordinator","ผู้รับเหมา"],ans:1},
+{q:"ตามลำดับ Graphic Override Hierarchy ข้อใดมีความสำคัญต่ำสุด (ค่าตั้งต้นทั้งโปรเจกต์)",choices:["Object Styles","View Template","Filter Overrides","Override Graphics in View by Element"],ans:0},
+{q:'Line Pattern "MEP - CENTER" ใช้แสดงเส้นประเภทใด',choices:["เส้นประสำหรับงานที่ถูกบัง","เส้นศูนย์กลางท่อ ท่อลม และอุปกรณ์","เส้นระยะซ่อมบำรุง","เส้นขอบเขตฉนวนหุ้ม"],ans:1},
+{q:"การกรองระบบลมส่ง (Supply Air) ควรใช้ Parameter ใด",choices:["Comments","System Type","Family Name","Type Comments"],ans:1},
+{q:'ตามมาตรฐานชื่อย่อระบบ อักษรย่อ "CHWR" หมายถึงระบบใด',choices:["ระบบลมกลับ (Return Air)","ระบบน้ำเย็นกลับ (Chilled Water Return)","ระบบน้ำร้อน (Hot Water Supply)","ระบบน้ำทิ้ง (Sanitary Drain)"],ans:1},
+{q:"การตั้งค่าใดใน View Template ควรเปิดยืดหยุ่น (Exclude) เพราะระดับฝ้าและแนวท่อแต่ละชั้นต่างกัน",choices:["View Range","Filters","Detail Level","Discipline"],ans:0},
+{q:"การตั้งค่า Duct Settings ข้อใดใช้ควบคุมมุมเลี้ยวท่อให้เป็นมาตรฐาน",choices:["Conversion","Angles","Calculation Method","Size Prefix/Suffix"],ans:1},
+{q:"Pipe Segment ชนิดใดใช้กับระบบ Chilled Water และ Fire Protection ตามมาตรฐาน ASTM A53/A106",choices:["PVC Class 8.5/13.5","Carbon Steel Sch.40","Copper Type L/M","HDPE PE100"],ans:1},
+{q:"โครงสร้างความสัมพันธ์ 3 ระดับของงาน MEP เรียงถูกต้องตามข้อใด",choices:["Duct Type > System Type > Routing Preferences","System Type > Duct/Pipe Type > Routing Preferences","Routing Preferences > System Type > Duct Type","System Type > Routing Preferences > Duct Type"],ans:1},
+{q:"การแบ่งช่วงขนาด Segment เพื่อเปลี่ยนวัสดุท่อ (เช่น ≤50mm ใช้ PPR, >50mm ใช้ Steel) กำหนดไว้ใน Routing Preferences หัวข้อใด",choices:["Segments","Elbow","Transition","Tee/Cross"],ans:0},
+{q:'ข้อผิดพลาดที่ทำให้เดินท่ออัตโนมัติไม่ได้และแจ้งเตือน "No fitting" เกิดจากข้อใด',choices:["ช่วงขนาด Segment ซ้อนทับกัน","การกำหนด Fitting ไม่ครบถ้วน","ละเลยการตั้งค่า Union/Flange","ตั้งค่า Transition ผิดประเภท"],ans:1},
+{q:"สาเหตุหลักที่ทำให้โมเดล Link File ไม่ตรงกัน คือข้อใด",choices:["จุดอ้างอิงไม่ตรงกัน","ใช้ Auto - Center to Center ในการ Link","ขาดการทำ Shared Coordinates","ถูกทุกข้อ"],ans:3},
+{q:"การ Link ไฟล์ AR ครั้งแรกควรใช้ Positioning แบบใด เพื่อดึงพิกัดร่วมภายหลัง",choices:["Auto - Center to Center","Auto - Internal Origin to Internal Origin","Auto - By Shared Coordinates","Origin to Last Placement"],ans:1},
+{q:"หลังทำ Acquire Coordinates แล้ว ห้ามทำสิ่งใดกับไฟล์ลิงก์โดยเด็ดขาด",choices:["Pin ไฟล์","Move ไฟล์","Reload ไฟล์","Unload ไฟล์"],ans:1},
+{q:'อักษรย่อ Discipline "P" ใน View Naming Convention หมายถึงงานใด',choices:["Mechanical","Electrical","Plumbing/Sanitary","Fire Protection"],ans:2},
+{q:'Workset "M-DUCT / M-PIPE" มีผู้รับผิดชอบหลักคือใคร',choices:["BIM Coordinator","Mechanical Modeler","Electrical Modeler","Plumbing/Sanitary Modeler"],ans:1},
+{q:"กฎ Worksharing ข้อใดต้องทำก่อน Sync และปิดไฟล์เสมอ",choices:["Create New Local","Relinquish All Mine","Acquire Coordinates","Purge Unused"],ans:1},
+{q:"Text Style ขนาด 5.0mm Arial Bold ใช้สำหรับงานใด",choices:["หมายเหตุย่อย","ตัวเลขระยะและ Tag อุปกรณ์หลัก","หัวข้อเรื่องย่อยและหัวตาราง","ชื่อมุมมองและชื่อแบบก่อสร้าง"],ans:3},
+{q:"Duct Tag มาตรฐานแสดงข้อมูลใดบ้าง",choices:["ขนาดท่อ + อักษรย่อระบบ","รหัสอุปกรณ์ + พิกัดกำลัง","ชนิดหัวฉีด + K-Factor","ชื่อตู้สวิตช์บอร์ด + พิกัดกระแส"],ans:0},
+{q:'Schedule "Space Schedule" ใช้สำหรับวัตถุประสงค์ใด',choices:["นับจำนวนหัวดับเพลิง","วิเคราะห์โหลดความเย็น","ตรวจสอบไฟล์","BOQ ความยาวท่อ"],ans:1},
+{q:"สูตร Duct Area ใช้ตัวแปรใดในการคำนวณ",choices:["Width x Height x Length","2(Width+Height) x Length","Width x Length","Height x Length"],ans:1},
+{q:'Parameter "Drawing_Status" มีตัวอย่างค่าใด',choices:["Tender/Construction","FOR CONSTRUCTION","MECHANICAL","2024-015"],ans:1},
+{q:'อักษรนำหน้า "FP-" หรือ "F-" ในการตั้งรหัสแบบ หมายถึงงานระบบใด',choices:["เครื่องกลและปรับอากาศ","ไฟฟ้าและสื่อสาร","สุขาภิบาลและประปา","ป้องกันและดับเพลิง"],ans:3},
+{q:"รูปแบบชื่อไฟล์ Family ในคลังมาตรฐาน เรียงลำดับส่วนแรกสุดด้วยข้อใด",choices:["Description","Discipline","Variant","Category"],ans:1},
+{q:"รายการตรวจสอบก่อนจัดเก็บ Family เข้า Library กำหนดขนาดไฟล์ไว้อย่างไร",choices:["ไม่เกิน 1 MB","ไม่เกิน 5 MB","ไม่จำกัดขนาด","ไม่เกิน 500 KB"],ans:0}
+];
+
+/* ============ STATE ============ */
+let currentRound = null;   // 'pre' | 'post'
+let currentQ = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let timeLeft = 0;
+let timerInterval = null;
+let examStarted = false;
+let resultSubmitted = false;
+
+/* ============ INIT ============ */
+function init(){
+  const preDone = localStorage.getItem(LS+"pre_done") === "1";
+  const postDone = localStorage.getItem(LS+"post_done") === "1";
+  const savedName = localStorage.getItem(LS+"name") || "";
+  const savedOrg = localStorage.getItem(LS+"org") || "";
+
+  document.getElementById("in-name").value = savedName;
+  document.getElementById("in-org").value = savedOrg;
+
+  if(preDone && postDone){
+    document.getElementById("s0-form").style.display = "none";
+    document.getElementById("s0-locked").style.display = "block";
+    return;
+  }
+
+  if(preDone && !postDone){
+    document.getElementById("in-name").disabled = true;
+    document.getElementById("in-org").disabled = true;
+    document.getElementById("opt-pre").classList.add("disabled");
+    document.getElementById("opt-pre").onclick = null;
+    document.getElementById("opt-post").classList.remove("disabled");
+    document.getElementById("opt-post").onclick = function(){selectRound('post');};
+    selectRound('post');
+  } else {
+    document.getElementById("opt-post").classList.add("disabled");
+  }
+
+  document.getElementById("in-name").addEventListener("input", validateForm);
+  document.getElementById("in-org").addEventListener("input", validateForm);
+}
+
+function selectRound(round){
+  if(round === 'post' && localStorage.getItem(LS+"pre_done") !== "1") return;
+  currentRound = round;
+  document.getElementById("opt-pre").classList.toggle("active", round==='pre');
+  document.getElementById("opt-post").classList.toggle("active", round==='post');
+  validateForm();
+}
+
+function validateForm(){
+  const name = document.getElementById("in-name").value.trim();
+  const org = document.getElementById("in-org").value.trim();
+  document.getElementById("btn-start").disabled = !(name && org && currentRound);
+}
+
+/* ============ START EXAM ============ */
+function go(){
+  if(examStarted) return;
+  examStarted = true;
+  document.getElementById("btn-start").disabled = true;
+
+  const name = document.getElementById("in-name").value.trim();
+  const org = document.getElementById("in-org").value.trim();
+  localStorage.setItem(LS+"name", name);
+  localStorage.setItem(LS+"org", org);
+
+  currentQ = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  timeLeft = currentRound === 'pre' ? TIME_PRE : TIME_POST;
+
+  showScreen('s1');
+  renderQuestion();
+  startTimer();
+}
+
+/* ============ TIMER ============ */
+function startTimer(){
+  stopTimer(); // critical: always clear existing interval first
+  updateTimerDisplay();
+  timerInterval = setInterval(function(){
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft <= 0){
+      stopTimer();
+      finishExam(true);
+    }
+  }, 1000);
+}
+function stopTimer(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+}
+function updateTimerDisplay(){
+  const m = Math.floor(timeLeft/60);
+  const s = timeLeft%60;
+  document.getElementById("timer-val").textContent = m+":"+String(s).padStart(2,"0");
+  const box = document.getElementById("timer-box");
+  box.classList.toggle("warn", timeLeft <= 60);
+}
+
+/* ============ QUIZ RENDER ============ */
+function renderQuestion(){
+  const item = QUESTIONS[currentQ];
+  document.getElementById("q-badge").textContent = "ข้อที่ "+(currentQ+1)+" จาก "+QUESTIONS.length;
+  document.getElementById("progress-fill").style.width = ((currentQ)/QUESTIONS.length*100)+"%";
+  document.getElementById("q-text").textContent = item.q;
+
+  const wrap = document.getElementById("choices-wrap");
+  wrap.innerHTML = "";
+  const letters = ["ก","ข","ค","ง"];
+  item.choices.forEach(function(choiceText, idx){
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.innerHTML = '<span class="ch-idx">'+letters[idx]+'.</span>'+choiceText;
+    btn.onclick = function(){ selectChoice(idx); };
+    wrap.appendChild(btn);
+  });
+  document.getElementById("btn-next").disabled = true;
+}
+
+function selectChoice(idx){
+  answers[currentQ] = idx;
+  const buttons = document.querySelectorAll("#choices-wrap .choice");
+  buttons.forEach(function(b, i){ b.classList.toggle("selected", i===idx); });
+  document.getElementById("btn-next").disabled = false;
+}
+
+function nextQuestion(){
+  if(answers[currentQ] === null) return;
+  // lock this question permanently — disable all choice buttons
+  document.querySelectorAll("#choices-wrap .choice").forEach(function(b){ b.disabled = true; });
+
+  currentQ++;
+  if(currentQ < QUESTIONS.length){
+    renderQuestion();
+  } else {
+    stopTimer();
+    finishExam(false);
+  }
+}
+
+/* ============ FINISH / RESULTS ============ */
+function finishExam(timedOut){
+  let score = 0;
+  answers.forEach(function(a, i){ if(a === QUESTIONS[i].ans) score++; });
+  const total = QUESTIONS.length;
+  const percent = Math.round(score/total*100);
+  const pass = percent >= PASS_PERCENT;
+
+  localStorage.setItem(LS+currentRound+"_done", "1");
+  localStorage.setItem(LS+currentRound+"_score", score);
+
+  showScreen('s2');
+  renderResults(score, total, percent, pass);
+  submitToSheets(score, total, timedOut);
+}
+
+function renderResults(score, total, percent, pass){
+  document.getElementById("ring").style.background =
+    "conic-gradient(var(--gold) "+(percent*3.6)+"deg, var(--card2) 0deg)";
+  document.getElementById("ring-val").textContent = percent+"%";
+  document.getElementById("ring-sub").textContent = score+"/"+total;
+  document.getElementById("r-name").textContent = localStorage.getItem(LS+"name") || "";
+
+  const pill = document.getElementById("r-pill");
+  pill.textContent = pass ? "ผ่านเกณฑ์" : "ไม่ผ่านเกณฑ์";
+  pill.className = "r-pill " + (pass ? "pass" : "fail");
+
+  const btnContinue = document.getElementById("btn-continue");
+  const compareBox = document.getElementById("compare-box");
+
+  if(currentRound === 'pre'){
+    btnContinue.style.display = "block";
+    compareBox.style.display = "none";
+  } else {
+    btnContinue.style.display = "none";
+    const preScore = localStorage.getItem(LS+"pre_score");
+    compareBox.style.display = "grid";
+    document.getElementById("cmp-pre").textContent = preScore !== null ? preScore+"/"+total : "-";
+    document.getElementById("cmp-post").textContent = score+"/"+total;
+  }
+}
+
+function goToPost(){
+  location.reload();
+}
+
+/* ============ SAVE TO GOOGLE SHEETS ============ */
+function submitToSheets(score, total, timedOut){
+  if(resultSubmitted) return;
+  resultSubmitted = true;
+
+  const roundLabel = currentRound === 'pre' ? "ก่อนอบรม" : "หลังอบรม";
+  const preScore = currentRound === 'post' ? (localStorage.getItem(LS+"pre_score") || '-') : '-';
+
+  // per-question detail — required by the Apps Script to write the person's tab
+  const answersDetail = QUESTIONS.map(function(item, i){
+    return {
+      question: item.q,
+      choices: item.choices,
+      selected: answers[i] === null ? -1 : answers[i],
+      correct: item.ans
+    };
+  });
+
+  const payloadObj = {
+    course: COURSE_NAME,      // Apps Script reads data.course (not courseName)
+    name: localStorage.getItem(LS+"name") || "",
+    org: localStorage.getItem(LS+"org") || "",
+    round: roundLabel,
+    score: score,
+    total: total,
+    preScore: preScore,       // shown in the "คะแนนก่อนอบรม" summary column
+    answers: answersDetail
+  };
+
+  // Apps Script does JSON.parse(e.postData.contents) — body MUST be a JSON string.
+  // Sending a plain string body (not FormData) keeps Content-Type as text/plain,
+  // which avoids a CORS preflight so it still works under mode:"no-cors".
+  fetch(APPS_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payloadObj) })
+    .then(function(){ markSaved(true); })
+    .catch(function(){ markSaved(false); });
+
+  // no-cors gives no readable response — assume success after a short delay for UX
+  setTimeout(function(){ markSaved(true); }, 1800);
+}
+
+let saveMarked = false;
+function markSaved(success){
+  if(saveMarked) return;
+  saveMarked = true;
+  const dot = document.getElementById("save-dot");
+  const text = document.getElementById("save-text");
+  dot.classList.add("done");
+  text.textContent = success ? "บันทึกข้อมูลเรียบร้อยแล้ว" : "บันทึกข้อมูลไม่สำเร็จ กรุณาแจ้งผู้ดูแลระบบ";
+}
+
+/* ============ SCREEN HELPERS ============ */
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(function(s){ s.classList.remove("active"); });
+  document.getElementById(id).classList.add("active");
+}
+
+init();
+</script>
+</body>
+</html>
